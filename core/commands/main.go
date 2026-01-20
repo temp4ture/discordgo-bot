@@ -3,6 +3,7 @@ package commands
 
 import (
 	"discordgo-bot/globals"
+	"discordgo-bot/utils/uembed"
 	"log"
 	"strings"
 
@@ -30,9 +31,9 @@ type CommandEntry struct {
 	AppCommand discordgo.ApplicationCommand
 	Aliases    []string // Alternate names usable via chat commands.
 	// Command function to call when invoked via chat message.
-	FuncMessage func(data *DataMessage)
+	FuncMessage func(data *DataMessage) error
 	// Command function to call when invoked via slash command.
-	FuncInteraction func(data *DataInteraction)
+	FuncInteraction func(data *DataInteraction) error
 }
 
 // data struct for message calls containing special functions
@@ -85,7 +86,11 @@ func handle_command_chat(session *discordgo.Session, message *discordgo.MessageC
 		return
 	}
 
-	command.FuncMessage(&DataMessage{session, message, content})
+	err := command.FuncMessage(&DataMessage{session, message, content})
+	if err != nil {
+		log.Printf("error executin command: %s\n", err)
+		uembed.GenerateErrorMessage(1)
+	}
 }
 
 func find_command_entry(content string) (*CommandEntry, bool, string) {
@@ -124,7 +129,11 @@ func find_command_entry(content string) (*CommandEntry, bool, string) {
 func handle_command_slash(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 	// find a command and run it with our given parameters
 	if cmd_entry, ok := command_map[interaction.ApplicationCommandData().Name]; ok {
-		cmd_entry.FuncInteraction(&DataInteraction{session, interaction})
+		err := cmd_entry.FuncInteraction(&DataInteraction{session, interaction})
+		if err != nil {
+			log.Printf("error executin command: %s\n", err)
+			uembed.GenerateErrorMessage(2)
+		}
 	}
 }
 

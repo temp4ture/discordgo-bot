@@ -6,7 +6,6 @@ package help
 import (
 	"discordgo-bot/core/commands"
 	"fmt"
-	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -23,7 +22,7 @@ var (
 	em_cmdprefix string = "/"
 )
 
-func do_command_message(data *commands.DataMessage) {
+func do_command_message(data *commands.DataMessage) error {
 	parameters := strings.Split(data.Content, " ")
 	page, err := strconv.Atoi(parameters[0])
 	if err != nil {
@@ -46,12 +45,10 @@ func do_command_message(data *commands.DataMessage) {
 			},
 		},
 	)
-	if err != nil {
-		log.Panic(err)
-	}
+	return err
 }
 
-func do_command_interaction(data *commands.DataInteraction) {
+func do_command_interaction(data *commands.DataInteraction) error {
 	var page int = int(data.GetOptions()["page"].IntValue())
 
 	embed := create_embed(page)
@@ -62,9 +59,7 @@ func do_command_interaction(data *commands.DataInteraction) {
 		},
 	},
 	)
-	if err != nil {
-		log.Panic(err)
-	}
+	return err
 }
 
 func create_embed(page int) *discordgo.MessageEmbed {

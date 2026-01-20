@@ -17,11 +17,10 @@ var (
 // Generates an error message including non-explicit data of the probable cause.
 func GenerateErrorMessage(id int) *discordgo.MessageEmbed {
 	// todo: add more parameters
-	errcode := fmt.Sprintf("0x0F%02dFFFF", id)
-	newErr := &ErrorMessage
-	newErr.Description = fmt.Sprintf(`
-We're sorry, something went wrong while processing your command...
--# code: %s
-`, errcode)
-	return newErr
+	error_code := fmt.Sprintf("0x0F%02dFFFF", id)
+	error_embed := &ErrorMessage
+	error_embed.Description =
+		"We're sorry, something went wrong while processing your command...\n" +
+			"-# code: " + error_code
+	return error_embed
 }

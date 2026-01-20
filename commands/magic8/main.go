@@ -6,14 +6,11 @@ package magic8
 import (
 	"discordgo-bot/core/commands"
 	"fmt"
-	"log"
 	"math/rand/v2"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-// note: could move this to a json file within
-// this folder for cleaner customization?
 var (
 	resp_positive = []string{
 		"Yes!",
@@ -26,7 +23,7 @@ var (
 	}
 )
 
-func do_command_message(data *commands.DataMessage) {
+func do_command_message(data *commands.DataMessage) error {
 	question := data.Content
 	author := data.Message.Author.DisplayName()
 
@@ -45,12 +42,10 @@ func do_command_message(data *commands.DataMessage) {
 			},
 		},
 	)
-	if err != nil {
-		log.Panic(err)
-	}
+	return err
 }
 
-func do_command_interaction(data *commands.DataInteraction) {
+func do_command_interaction(data *commands.DataInteraction) error {
 	question := data.GetOptions()["question"].StringValue()
 	author := data.Interaction.Member.User.DisplayName()
 
@@ -62,9 +57,7 @@ func do_command_interaction(data *commands.DataInteraction) {
 		},
 	},
 	)
-	if err != nil {
-		log.Panic(err)
-	}
+	return err
 }
 
 func create_embed(question string, user string) *discordgo.MessageEmbed {

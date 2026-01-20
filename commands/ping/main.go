@@ -6,12 +6,11 @@ package ping
 import (
 	"discordgo-bot/core/commands"
 	"fmt"
-	"log"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-func do_command_message(data *commands.DataMessage) {
+func do_command_message(data *commands.DataMessage) error {
 	embed := create_embed(data.Session)
 
 	_, err := data.Session.ChannelMessageSendComplex(
@@ -28,12 +27,10 @@ func do_command_message(data *commands.DataMessage) {
 			},
 		},
 	)
-	if err != nil {
-		log.Panic(err)
-	}
+	return err
 }
 
-func do_command_interaction(data *commands.DataInteraction) {
+func do_command_interaction(data *commands.DataInteraction) error {
 	embed := create_embed(data.Session)
 
 	err := data.Session.InteractionRespond(data.Interaction.Interaction, &discordgo.InteractionResponse{
@@ -42,9 +39,7 @@ func do_command_interaction(data *commands.DataInteraction) {
 			Embeds: []*discordgo.MessageEmbed{embed},
 		},
 	})
-	if err != nil {
-		log.Panic(err)
-	}
+	return err
 }
 
 // create an embed using the provided session
