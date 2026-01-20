@@ -49,7 +49,11 @@ func do_command_message(data *commands.DataMessage) error {
 }
 
 func do_command_interaction(data *commands.DataInteraction) error {
-	var page int = int(data.GetOptions()["page"].IntValue())
+	// get our 'page' interaction option and default to 1 if none was provided.
+	var page int = 1
+	if option, ok := data.GetOptions()["page"]; ok {
+		page = int(option.IntValue())
+	}
 
 	embed := create_embed(page)
 	err := data.Session.InteractionRespond(data.Interaction.Interaction, &discordgo.InteractionResponse{
@@ -62,6 +66,7 @@ func do_command_interaction(data *commands.DataInteraction) error {
 	return err
 }
 
+// Create and return a pretty 'help' embed on a specific page.
 func create_embed(page int) *discordgo.MessageEmbed {
 	allcommands := commands.GetCommandEntries()
 	var page_active int = 1
