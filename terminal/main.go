@@ -46,8 +46,10 @@ func init() {
 				if err == nil && page > 0 {
 					pages_curr = min(page, pages_max)
 				}
+
 				// generate our string to print
-				str_to_print := ucolor.SUBTITLE
+				var str_to_print strings.Builder
+				str_to_print.WriteString(ucolor.SUBTITLE)
 				for i, command := range terminal_commands {
 					// offset according to our page & visible commands per
 					if i < command_show_limit*(pages_curr-1) {
@@ -55,15 +57,24 @@ func init() {
 					} else if i+1 > command_show_limit*pages_curr {
 						break
 					}
-					tusage := "" // append usage if we have one
+					tusage := ""
+					// append usage if we have one
 					if len(command.Usage) > 1 {
-						tusage += " " + ucolor.ITALIC + command.Usage + ucolor.RESET + ucolor.SUBTITLE
+						tusage += " " + ucolor.ITALIC +
+							command.Usage + ucolor.RESET + ucolor.SUBTITLE
 					}
-					str_to_print += fmt.Sprintf("%s%s - %s\n", command.Name, tusage, command.Description)
+					fmt.Fprintf(
+						&str_to_print, "%s%s - %s\n",
+						command.Name, tusage, command.Description,
+					)
 				}
 
-				str_to_print += fmt.Sprintf("%s%sPage %d of %d%s\n", ucolor.RESET, ucolor.BOLD, pages_curr, pages_max, ucolor.RESET)
-				fmt.Println(str_to_print)
+				fmt.Fprintf(
+					&str_to_print, "%s%sPage %d of %d%s\n",
+					ucolor.RESET, ucolor.BOLD, pages_curr,
+					pages_max, ucolor.RESET,
+				)
+				fmt.Println(str_to_print.String())
 				return true, nil
 			},
 		},
@@ -92,19 +103,24 @@ func init() {
 		{
 			Name:        "clear",
 			Description: "Clear the terminal.",
+
 			Handle: func(args []string) (bool, error) {
-				clsFunc := map[string]*exec.Cmd{
+				// different os' clear their terminals with different commands
+				os_clearcmd := map[string]*exec.Cmd{
 					"linux":   exec.Command("clear"),
 					"windows": exec.Command("cmd", "/c", "cls"),
 				}
-				osget := runtime.GOOS
-				eCmd, succ := clsFunc[osget]
-				if !succ {
-					eCmd = clsFunc["linux"]
-					fmt.Printf("Your platform \"%s\" is not properly implemented. Attempting fallback...\n", osget)
+				// get the proper command by fetching our os
+				os_system := runtime.GOOS
+				clear_cmd, success := os_clearcmd[os_system]
+				if !success {
+					// we fallback to linux as unix is the most common
+					// os distribution out there, i believe.
+					clear_cmd = os_clearcmd["linux"]
 				}
-				eCmd.Stdout = os.Stdout
-				return true, eCmd.Run()
+
+				clear_cmd.Stdout = os.Stdout
+				return true, clear_cmd.Run()
 			},
 		}}
 	// register all commands listed
@@ -130,23 +146,44 @@ func sanitizeInput(message string) string {
 	return strings.TrimSuffix(strings.TrimSuffix(message, "\n"), "\r")
 }
 
+func getQuitShortcut() string {
+	// show a different quit shortcut depending on the platform, as
+	// it varies between unix and.. windows.
+	os_quitsc := map[string]string{
+		"linux":   "Ctrl + D",
+		"windows": "Ctrl + C",
+	}
+	os_system := runtime.GOOS
+	shortcut_str, success := os_quitsc[os_system]
+	if !success {
+		// fallback on linux because of unix likeliness.
+		shortcut_str = os_quitsc["linux"]
+	}
+	return shortcut_str
+}
+
 // Start our terminal loop.
 func Start() bool {
 	// capture os.Interrupt to prevent hard quitting
 	signal.Notify(make(chan os.Signal, 1), os.Interrupt)
-	fmt.Printf(`
-Enter "%shelp%s" for a list of available commands
-Quit the program by pressing %sCTRL + D%s or entering "%squit%s".
-`,
-		ucolor.OKBLUE,
-		ucolor.RESET,
-		ucolor.OKCYAN,
-		ucolor.RESET,
-		ucolor.OKBLUE,
-		ucolor.RESET,
-	)
-	run := true
 
+	var help_string strings.Builder
+	// build a pretty string using colors
+	fmt.Fprintf(
+		&help_string, "\nEnter %shelp%s for a list of available commands.\n",
+		ucolor.OKBLUE, ucolor.RESET,
+	)
+	shortcut_str := getQuitShortcut()
+	fmt.Fprintf(
+		&help_string,
+		"Quit the program by pressing '%s%s%s' or using %squit%s.\n",
+		ucolor.OKCYAN, shortcut_str, ucolor.RESET, ucolor.OKBLUE, ucolor.RESET,
+	)
+	// finally, we print it!
+	fmt.Println(help_string.String())
+
+	run := true
+	// read terminal inputs for as long as we're alive
 	for {
 		if !run {
 			break
@@ -155,7 +192,8 @@ Quit the program by pressing %sCTRL + D%s or entering "%squit%s".
 		input_reader := bufio.NewReader(os.Stdin)
 		fmt.Print("> ")
 		input, err := input_reader.ReadString('\n')
-		if err != nil { // os.Interrupt (Ctrl+C) will land us here
+		if err != nil {
+			// os.Interrupt will land us here
 			break
 		}
 
@@ -185,8 +223,9 @@ func Start_No_Terminal() bool {
 	signal.Notify(exit_signal, os.Interrupt)
 
 	fmt.Printf(
-		"Quit the program by pressing %sCTRL + C%s.\n",
+		"Quit the program by pressing '%s%s%s'.\n",
 		ucolor.OKCYAN,
+		getQuitShortcut(),
 		ucolor.RESET,
 	)
 
@@ -217,12 +256,19 @@ func interpret_terminal(message string) (int, error) {
 			ok, err := terminal_command.Handle(args)
 			if !ok {
 				// print command usage if formatted wrong
-				fmt.Printf("%sUsage: %s %s%s\n", ucolor.BOLD, terminal_command.Name, terminal_command.Usage, ucolor.RESET)
+				fmt.Printf(
+					"%sUsage: %s %s%s\n",
+					ucolor.BOLD, terminal_command.Name,
+					terminal_command.Usage, ucolor.RESET,
+				)
 			}
 			return 1, err
 		}
 	}
-	fmt.Printf("%serror: \"%s\" not recognized as a terminal command.%s\n", ucolor.FAIL, command_name, ucolor.RESET)
+	fmt.Printf(
+		"%serror: \"%s\" not recognized as a terminal command.%s\n",
+		ucolor.FAIL, command_name, ucolor.RESET,
+	)
 	return 0, nil
 
 }
