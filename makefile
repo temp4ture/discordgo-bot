@@ -1,9 +1,13 @@
-.PHONY: _ _chalk dependencies exec b
+.PHONY: _ _no_param _chalk dependencies exec b
 # make with no target defaults to "default".
-_: run
+_: _no_param linux
 
-EX_FILENAME := "discordgo-bot"
-OUTPUT_PATH := "./.bin/"
+SRC_FILE := "./main.go"
+OUTPUT_PATH := "./.bin"
+EXPORT_FILENAME := "discordgo-bot"
+
+_no_param:
+	@echo "no target provided; building for linux."
 
 _chalk:
 	@command -v go >/dev/null 2>&1 || { \
@@ -23,6 +27,7 @@ _chalk:
 	@echo 
 	@echo 
 	@exit 1
+
 # get dependencies
 dependencies: _chalk .env
 
@@ -30,21 +35,23 @@ exec: dependencies
 	@echo "Executing \"main.go\"..."
 	-go run main.go ${PARAMETERS} ||:
 b: dependencies
-	@echo "Building to \"${OUTPUT_PATH}${EX_FILENAME}${EXT}\"" 
-	@go build -o ${OUTPUT_PATH}${EX_FILENAME}${EXT}
+	@echo "Building to \"${OUT_PATH}\"" 
+	@${ENV} go build -o "${OUT_PATH}" ${SRC_FILE}
 
 .PHONY: run run-no-terminal run-verbose
-run:
-	$(MAKE) exec TARGET=$@ PARAMETERS="${pmt}"
 # note: i suggest using these only for checks and debugging
 # 	 	do "go run main.go (parameters)" otherwise.
+run:
+	@$(MAKE) exec TARGET=$@ PARAMETERS="${pmt}"
 run-no-terminal:
-	$(MAKE) exec TARGET=$@ PARAMETERS="--no-terminal"
+	@$(MAKE) exec TARGET=$@ PARAMETERS="--no-terminal"
 run-verbose:
-	$(MAKE) exec TARGET=$@ PARAMETERS="--verbose"
+	@$(MAKE) exec TARGET=$@ PARAMETERS="--verbose"
 
 .PHONY: build build-exe
-build:
-	$(MAKE) b TARGET=$@ EXT=""
-build-exe:
-	$(MAKE) b TARGET=$@ EXT=".exe"
+linux:
+	@echo Building project into linux executable...
+	@$(MAKE) b TARGET=$@ ENV="" OUT_PATH="${OUTPUT_PATH}/linux/${EXPORT_FILENAME}"
+windows:
+	@echo Building project into windows executable...
+	@$(MAKE) b TARGET=$@ ENV="GOOS=windows GOARCH=386" OUT_PATH="${OUTPUT_PATH}/windows/${EXPORT_FILENAME}.exe"
