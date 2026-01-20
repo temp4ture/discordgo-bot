@@ -18,8 +18,8 @@ var (
 	//
 	// Higher is more information at the cost of chat visibility.
 	commands_per_page int = 11
-	//
-	em_cmdprefix string = "/"
+	// Prefix used for commands on the help embed.
+	embed_command_prefix string = "/"
 )
 
 func do_command_message(data *commands.DataMessage) error {
@@ -77,13 +77,15 @@ func create_embed(page int) *discordgo.MessageEmbed {
 	page_active = max(1, min(page_max, page))
 
 	// generate description from core
-	em_description := ""
+	embed_description := ""
 	i := 0 // ranging maps doesnt return a len variable so...
 	for _, cmd := range allcommands {
 		i++
-		if i < commands_per_page*(page_active-1) { // offset our command list using help_page & commands_per_page
+		if i < commands_per_page*(page_active-1) {
+			// offset our command list using help_page & commands_per_page
 			continue
-		} else if i+1 > commands_per_page*page_active { // stop generating if we go past our cmds limit
+		} else if i+1 > commands_per_page*page_active {
+			// stop generating if we go past our cmds limit
 			break
 		}
 
@@ -93,9 +95,9 @@ func create_embed(page int) *discordgo.MessageEmbed {
 		for _, option := range command_options {
 			str_options += fmt.Sprintf(" *[%s]*", option.Name)
 		}
-		em_description += fmt.Sprintf(
+		embed_description += fmt.Sprintf(
 			"%s%s%s\n-# %s\n\n",
-			em_cmdprefix, cmd.AppCommand.Name,
+			embed_command_prefix, cmd.AppCommand.Name,
 			str_options, cmd.AppCommand.Description,
 		)
 	}
@@ -108,7 +110,7 @@ func create_embed(page int) *discordgo.MessageEmbed {
 
 	embed := &discordgo.MessageEmbed{
 		Title:       "Available Commands:",
-		Description: em_description,
+		Description: embed_description,
 		Footer: &discordgo.MessageEmbedFooter{
 			Text: em_footer,
 		},
