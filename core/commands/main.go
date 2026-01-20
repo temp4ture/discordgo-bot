@@ -95,7 +95,7 @@ func handle_command_chat(session *discordgo.Session, message *discordgo.MessageC
 
 func find_command_entry(content string) (*CommandEntry, bool, string) {
 	if len(content) < 1 {
-		log.Fatalf("can't run 'chcmd_match_command' with an empty string")
+		log.Println("can't run 'chcmd_match_command' with an empty string")
 		return nil, false, ""
 	}
 	var trimmed string = content
