@@ -3,26 +3,20 @@
 // Usage: /help [page]
 package help
 
+// This file handles command interpretation.
+
 import (
 	"discordgo-bot/core/commands"
-	"fmt"
-	"math"
 	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-var (
-	// Amount of commands to be rendered per command call.
-	//
-	// Higher is more information at the cost of chat visibility.
-	commands_per_page int = 11
-	// Prefix used for commands on the help embed.
-	embed_command_prefix string = "/"
-)
-
+// Handler when our command gets called via chat message.
 func do_command_message(data *commands.DataMessage) error {
+	// get our first parameter and use it as our page number
+	// todo: need a better way of parsing chat parameters
 	parameters := strings.Split(data.Content, " ")
 	page, err := strconv.Atoi(parameters[0])
 	if err != nil {
@@ -30,7 +24,7 @@ func do_command_message(data *commands.DataMessage) error {
 	}
 
 	embed := create_embed(page)
-
+	// send our fancy embed, responding to our user without pinging them
 	_, err = data.Session.ChannelMessageSendComplex(
 		data.Message.ChannelID,
 		&discordgo.MessageSend{
@@ -48,6 +42,7 @@ func do_command_message(data *commands.DataMessage) error {
 	return err
 }
 
+// Handler when our command gets called via discord's slash command.
 func do_command_interaction(data *commands.DataInteraction) error {
 	// get our 'page' interaction option and default to 1 if none was provided.
 	var page int = 1
@@ -56,6 +51,7 @@ func do_command_interaction(data *commands.DataInteraction) error {
 	}
 
 	embed := create_embed(page)
+	// send our fancy embed, responding to our user without pinging them
 	err := data.Session.InteractionRespond(data.Interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -64,76 +60,4 @@ func do_command_interaction(data *commands.DataInteraction) error {
 	},
 	)
 	return err
-}
-
-// Create and return a pretty 'help' embed on a specific page.
-func create_embed(page int) *discordgo.MessageEmbed {
-	allcommands := commands.GetCommandEntries()
-	var page_active int = 1
-	page_max := int(
-		math.Ceil(float64(len(allcommands)) /
-			float64(commands_per_page)),
-	)
-	page_active = max(1, min(page_max, page))
-
-	// generate description from core
-	embed_description := ""
-	i := 0 // ranging maps doesnt return a len variable so...
-	for _, cmd := range allcommands {
-		i++
-		if i < commands_per_page*(page_active-1) {
-			// offset our command list using help_page & commands_per_page
-			continue
-		} else if i+1 > commands_per_page*page_active {
-			// stop generating if we go past our cmds limit
-			break
-		}
-
-		var str_options string
-		// generate usage line using command options
-		command_options := cmd.AppCommand.Options
-		for _, option := range command_options {
-			str_options += fmt.Sprintf(" *[%s]*", option.Name)
-		}
-		embed_description += fmt.Sprintf(
-			"%s%s%s\n-# %s\n\n",
-			embed_command_prefix, cmd.AppCommand.Name,
-			str_options, cmd.AppCommand.Description,
-		)
-	}
-	// footer showing our active page
-	em_footer := fmt.Sprintf(
-		"Page %d of %d",
-		page_active,
-		page_max,
-	)
-
-	embed := &discordgo.MessageEmbed{
-		Title:       "Available Commands:",
-		Description: embed_description,
-		Footer: &discordgo.MessageEmbedFooter{
-			Text: em_footer,
-		},
-		Color: 0x41aa0e,
-	}
-	return embed
-}
-
-func init() {
-	commands.Register(commands.CommandEntry{
-		AppCommand: discordgo.ApplicationCommand{
-			Name:        "help",
-			Description: "Show a list and usage of available commands.",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Name:        "page",
-					Description: "Page to display.",
-					Type:        discordgo.ApplicationCommandOptionInteger,
-					Required:    false,
-				},
-			},
-		},
-		FuncMessage:     do_command_message,
-		FuncInteraction: do_command_interaction,
-	})
 }

@@ -3,31 +3,21 @@
 // Usage: /8ball (question)
 package magic8
 
+// This file handles command interpretation.
+
 import (
 	"discordgo-bot/core/commands"
-	"fmt"
-	"math/rand/v2"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-var (
-	resp_positive = []string{
-		"Yes!",
-	}
-	resp_neutral = []string{
-		"Maybe...",
-	}
-	resp_negative = []string{
-		"No.",
-	}
-)
-
+// Handler when our command gets called via chat message.
 func do_command_message(data *commands.DataMessage) error {
 	question := data.Content
 	author := data.Message.Author.DisplayName()
 
 	embed := create_embed(question, author)
+	// send our fancy embed, responding to our user without pinging them
 	_, err := data.Session.ChannelMessageSendComplex(
 		data.Message.ChannelID,
 		&discordgo.MessageSend{
@@ -45,56 +35,20 @@ func do_command_message(data *commands.DataMessage) error {
 	return err
 }
 
+// Handler when our command gets called via discord's slash command.
 func do_command_interaction(data *commands.DataInteraction) error {
 	question := data.GetOptions()["question"].StringValue()
 	author := data.Interaction.Member.User.DisplayName()
 
 	embed := create_embed(question, author)
-	err := data.Session.InteractionRespond(data.Interaction.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{embed},
-		},
-	},
-	)
-	return err
-}
-
-func create_embed(question string, user string) *discordgo.MessageEmbed {
-	var embed *discordgo.MessageEmbed
-
-	// pick a response!
-	r_ipool := [][]string{resp_positive, resp_neutral, resp_negative}
-	r_spool := r_ipool[rand.IntN(len(r_ipool))]
-	response := r_spool[rand.IntN(len(r_spool))]
-
-	em_content := fmt.Sprintf(
-		"**%s's question:** %s\n**answer:** %s",
-		user, question, response,
-	)
-	embed = &discordgo.MessageEmbed{
-		Title:       "8 Ball",
-		Description: em_content,
-	}
-
-	return embed
-}
-
-func init() {
-	commands.Register(commands.CommandEntry{
-		AppCommand: discordgo.ApplicationCommand{
-			Name:        "8ball",
-			Description: "Responds to a yes / no question.",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Name:        "question",
-					Description: "What is your question?",
-					Type:        discordgo.ApplicationCommandOptionString,
-					Required:    true,
-				},
+	// send our fancy embed, responding to our user without pinging them
+	err := data.Session.InteractionRespond(
+		data.Interaction.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{embed},
 			},
 		},
-		FuncMessage:     do_command_message,
-		FuncInteraction: do_command_interaction,
-	})
+	)
+	return err
 }
