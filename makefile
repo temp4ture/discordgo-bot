@@ -43,8 +43,8 @@ b_env:
 	@echo "BOT_TOKEN = token_goes_here # https://discord.com/developers/applications" > "${PATH}"
 
 .PHONY: run run-no-terminal run-verbose
-# note: i suggest using these only for checks and debugging
-# 	 	do "go run main.go (parameters)" otherwise.
+# i suggest using these only for checks and debugging
+# do "go run main.go (parameters)" otherwise.
 run:
 	@$(MAKE) exec TARGET=$@ PARAMETERS="${pmt}" --silent
 run-no-terminal:

@@ -1,4 +1,4 @@
-// package contains relevant global variables
+// Package contains relevant global variables
 package globals
 
 import "github.com/bwmarrin/discordgo"
