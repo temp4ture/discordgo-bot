@@ -81,7 +81,8 @@ func findCommandEntry(content string) (*CommandEntry, bool, string) {
 		}
 	}
 	if command != nil {
-		trimmed = strings.TrimSuffix(trimmed, to_trim)
+		// trim the command & any trailing spaces from our message output
+		trimmed = strings.TrimLeft(trimmed, to_trim)
 		trimmed = strings.TrimSpace(trimmed)
 		return command, true, trimmed
 	}
