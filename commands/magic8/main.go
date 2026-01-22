@@ -12,11 +12,11 @@ import (
 )
 
 // Handler when our command gets called via chat message.
-func do_command_message(data *commands.DataMessage) error {
+func doCommandMessage(data *commands.DataMessage) error {
 	question := data.Content
 	author := data.Message.Author.DisplayName()
 
-	embed := create_embed(question, author)
+	embed := createEmbed(question, author)
 	// send our fancy embed, responding to our user without pinging them
 	_, err := data.Session.ChannelMessageSendComplex(
 		data.Message.ChannelID,
@@ -36,11 +36,11 @@ func do_command_message(data *commands.DataMessage) error {
 }
 
 // Handler when our command gets called via discord's slash command.
-func do_command_interaction(data *commands.DataInteraction) error {
+func doCommandInteraction(data *commands.DataInteraction) error {
 	question := data.GetOptions()["question"].StringValue()
 	author := data.Interaction.Member.User.DisplayName()
 
-	embed := create_embed(question, author)
+	embed := createEmbed(question, author)
 	// send our fancy embed, responding to our user without pinging them
 	err := data.Session.InteractionRespond(
 		data.Interaction.Interaction, &discordgo.InteractionResponse{

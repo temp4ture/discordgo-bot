@@ -26,7 +26,7 @@ var (
 )
 
 // Create a pretty embed with a user and their question.
-func create_embed(question string, user string) *discordgo.MessageEmbed {
+func createEmbed(question string, user string) *discordgo.MessageEmbed {
 	var embed *discordgo.MessageEmbed
 
 	// randomly pick a response

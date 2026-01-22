@@ -12,8 +12,8 @@ import (
 )
 
 // Handler when our command gets called via chat message.
-func do_command_message(data *commands.DataMessage) error {
-	embed := create_embed(data.Session)
+func doCommandMessage(data *commands.DataMessage) error {
+	embed := createEmbed(data.Session)
 
 	_, err := data.Session.ChannelMessageSendComplex(
 		data.Message.ChannelID,
@@ -33,8 +33,8 @@ func do_command_message(data *commands.DataMessage) error {
 }
 
 // Handler when our command gets called via discord's slash command.
-func do_command_interaction(data *commands.DataInteraction) error {
-	embed := create_embed(data.Session)
+func doCommandInteraction(data *commands.DataInteraction) error {
+	embed := createEmbed(data.Session)
 
 	err := data.Session.InteractionRespond(data.Interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

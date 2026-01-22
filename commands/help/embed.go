@@ -24,7 +24,7 @@ var (
 )
 
 // Create and return a pretty 'help' embed on a specific page.
-func create_embed(page int) *discordgo.MessageEmbed {
+func createEmbed(page int) *discordgo.MessageEmbed {
 	allcommands := commands.GetCommandEntries()
 	var page_active int = 1
 	page_max := int(

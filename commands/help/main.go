@@ -14,7 +14,7 @@ import (
 )
 
 // Handler when our command gets called via chat message.
-func do_command_message(data *commands.DataMessage) error {
+func doCommandMessage(data *commands.DataMessage) error {
 	// get our first parameter and use it as our page number
 	// todo: need a better way of parsing chat parameters
 	parameters := strings.Split(data.Content, " ")
@@ -23,7 +23,7 @@ func do_command_message(data *commands.DataMessage) error {
 		page = 1
 	}
 
-	embed := create_embed(page)
+	embed := createEmbed(page)
 	// send our fancy embed, responding to our user without pinging them
 	_, err = data.Session.ChannelMessageSendComplex(
 		data.Message.ChannelID,
@@ -43,14 +43,14 @@ func do_command_message(data *commands.DataMessage) error {
 }
 
 // Handler when our command gets called via discord's slash command.
-func do_command_interaction(data *commands.DataInteraction) error {
+func doCommandInteraction(data *commands.DataInteraction) error {
 	// get our 'page' interaction option and default to 1 if none was provided.
 	var page int = 1
 	if option, ok := data.GetOptions()["page"]; ok {
 		page = int(option.IntValue())
 	}
 
-	embed := create_embed(page)
+	embed := createEmbed(page)
 	// send our fancy embed, responding to our user without pinging them
 	err := data.Session.InteractionRespond(data.Interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

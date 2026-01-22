@@ -17,7 +17,7 @@ func init() {
 			Name:        "ping",
 			Description: "Pong! Responds with response latency.",
 		},
-		FuncMessage:     do_command_message,
-		FuncInteraction: do_command_interaction,
+		FuncMessage:     doCommandMessage,
+		FuncInteraction: doCommandInteraction,
 	})
 }

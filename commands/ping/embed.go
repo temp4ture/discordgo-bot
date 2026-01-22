@@ -12,7 +12,7 @@ import (
 )
 
 // Create an embed using the provided session.
-func create_embed(s *discordgo.Session) *discordgo.MessageEmbed {
+func createEmbed(s *discordgo.Session) *discordgo.MessageEmbed {
 	var embed *discordgo.MessageEmbed
 	var em_description string = fmt.Sprintf(
 		"# Pong! 🏓\n-# %dms response time",
