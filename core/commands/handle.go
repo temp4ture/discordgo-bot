@@ -113,11 +113,13 @@ func handleCommandViaChat(session *discordgo.Session, message *discordgo.Message
 		return
 	}
 
-	err := command.FuncMessage(&DataMessage{session, message, content})
-	if err != nil {
-		log.Printf("error executing command: %s\n", err)
-		// uembed.GenerateErrorMessage(1)
-	}
+	go func() {
+		err := command.FuncMessage(&DataMessage{session, message, content})
+		if err != nil {
+			log.Printf("error executing command: %s\n", err)
+			// uembed.GenerateErrorMessage(1)
+		}
+	}()
 }
 
 func handleCommandViaSlash(
@@ -126,10 +128,12 @@ func handleCommandViaSlash(
 ) {
 	// find a command and run it with our given parameters
 	if cmd_entry, ok := command_map[interaction.ApplicationCommandData().Name]; ok {
-		err := cmd_entry.FuncInteraction(&DataInteraction{session, interaction})
-		if err != nil {
-			log.Printf("error executing command: %s\n", err)
-			// uembed.GenerateErrorMessage(2)
-		}
+		go func() {
+			err := cmd_entry.FuncInteraction(&DataInteraction{session, interaction})
+			if err != nil {
+				log.Printf("error executing command: %s\n", err)
+				// uembed.GenerateErrorMessage(2)
+			}
+		}()
 	}
 }
